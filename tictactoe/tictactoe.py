@@ -50,6 +50,26 @@ def terminal(board):
     """
     Returns True if game is over, False otherwise.
     """
+    # Define win condition
+    wincond = [(0,1,2),(2,5,8),(0,3,6),(0,4,8),(2,4,6),(6,7,8)]
+    
+    # first get board position of each player
+    ##
+    #board=[['X', 'X', 'O'], ['X', 'X', ''], ['O', 'O', 'X']]
+    temp = []
+    for d, l in enumerate(board):
+        temp.append([d*3+num for num in [i for i, x in enumerate(l) if x=="X"]])
+    
+    boardpos_X = []
+    for l in temp:
+         for ele in l:
+             boardpos_X.append(ele)
+     
+    for t in wincond:
+        if set(t).issubset(boardpos_X):
+            print("True")
+         
+        
     raise NotImplementedError
 
 

@@ -2,6 +2,7 @@ import csv
 import sys
 
 from util import Node, StackFrontier, QueueFrontier
+from IPython.core.debugger import set_trace
 
 # Maps names to a set of corresponding person_ids
 names = {}
@@ -61,27 +62,31 @@ def main():
     print("Loading data...")
     load_data(directory)
     print("Data loaded.")
-
-    source = person_id_for_name(input("Name: "))
-    if source is None:
-        sys.exit("Person not found.")
-    target = person_id_for_name(input("Name: "))
-    if target is None:
-        sys.exit("Person not found.")
-
-    path = shortest_path(source, target)
-
-    if path is None:
-        print("Not connected.")
-    else:
-        degrees = len(path)
-        print(f"{degrees} degrees of separation.")
-        path = [(None, source)] + path
-        for i in range(degrees):
-            person1 = people[path[i][1]]["name"]
-            person2 = people[path[i + 1][1]]["name"]
-            movie = movies[path[i + 1][0]]["title"]
-            print(f"{i + 1}: {person1} and {person2} starred in {movie}")
+    
+    nextq = "Yes"
+    while nextq == "Yes":
+        source = person_id_for_name(input("Name: "))
+        if source is None:
+            sys.exit("Person not found.")
+        target = person_id_for_name(input("Name: "))
+        if target is None:
+            sys.exit("Person not found.")
+    
+        path = shortest_path(source, target)
+    
+        if path is None:
+            print("Not connected.")
+        else:
+            degrees = len(path)
+            print(f"{degrees} degrees of separation.")
+            path = [(None, source)] + path
+            for i in range(degrees):
+                person1 = people[path[i][1]]["name"]
+                person2 = people[path[i + 1][1]]["name"]
+                movie = movies[path[i + 1][0]]["title"]
+                print(f"{i + 1}: {person1} and {person2} starred in {movie}")
+        
+        nextq = input("Continue: ")
 
 
 def shortest_path(source, target):
@@ -119,6 +124,8 @@ def shortest_path(source, target):
         # choose a node from the frontier
         node = frontier.remove()
         num_explored += 1
+        
+        #print(node.state)
         
         # if node is the goal, then we have a solution
         if node.state == target:
