@@ -18,7 +18,7 @@ people = {}
 movies = {}
 
 
-f = open(f"/Users/qingxiangyan/Documents/github_repo/Python_ML/degrees/large/people.csv",encoding ="utf-8")
+f = open(f"/Users/qingxiangyan/Documents/github_repo/Python_ML/degrees/small/people.csv",encoding ="utf-8")
 
 reader = csv.DictReader(f)
 for row in reader:
