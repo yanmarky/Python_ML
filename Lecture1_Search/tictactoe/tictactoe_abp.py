@@ -169,7 +169,12 @@ def utility(board):
     #raise NotImplementedError
 
 
-def min_value(board):
+def min_value(board,alpha,beta):
+    """
+    Alpha-beta pruning: for min_value function, stop exploring if there is a 
+    utility < alpha (current max for max player)
+
+    """
     if terminal(board):
         return utility(board)
     v = math.inf
@@ -177,11 +182,21 @@ def min_value(board):
     for action in actions(board):
     #   print("MIN current",board)
     #   print(action)
-        v = min(v, max_value(result(board,action)))
+        
+        v = min(v, max_value(result(board,action),alpha,beta))
+        if v < alpha:
+            return v
+        if v < beta:
+            beta = v
     #  print(v)
     return v
 
-def max_value(board):
+def max_value(board,alpha,beta):
+    """
+    Alpha-beta pruning: for max_value function, stop exploring if there is a 
+    utility > beta (current min for min player)
+
+    """
     if terminal(board):
         return utility(board)
     v = -math.inf
@@ -189,7 +204,12 @@ def max_value(board):
     for action in actions(board):
     #   print("MAX current",board)
     #   print(action)
-        v = max(v, min_value(result(board,action)))
+        
+        v = max(v, min_value(result(board,action),alpha,beta))
+        if v > beta:
+            return v
+        if v > alpha:
+            alpha = v
     #   print(v)
     return v
 
@@ -205,14 +225,22 @@ def minimax(board):
     
     #frontier = StackFrontier()
     #frontier.add(board)
+    alpha = -math.inf       # store max for max player "X"
+    beta = math.inf        # store min for min player "O"  
     
     if player(board)=="X":
         for action in actions(board):
-            decisionset[action] = min_value(result(board, action))
+            currentv = min_value(result(board, action),alpha,beta)
+            if currentv > alpha:
+                alpha = currentv
+            decisionset[action] = currentv
         action = max(zip(decisionset.values(), decisionset.keys()))[1]
     else:
         for action in actions(board):
-            decisionset[action] = max_value(result(board, action))
+            currentv = max_value(result(board, action),alpha,beta)
+            if currentv < beta:
+                beta = currentv
+            decisionset[action] = currentv
         action = min(zip(decisionset.values(), decisionset.keys()))[1]
     return action
 
