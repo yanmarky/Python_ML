@@ -1,4 +1,5 @@
 from logic import *
+import pdb; pdb.set_trace()
 
 AKnight = Symbol("A is a Knight")
 AKnave = Symbol("A is a Knave")
@@ -72,8 +73,6 @@ knowledge3 = And(
     
     # Puzzle specific
     ## A 
-    
-    
     
     ## B
     Implication(BKnight,And(Implication(AKnight,AKnave),
