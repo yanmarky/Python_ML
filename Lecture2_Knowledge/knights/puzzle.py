@@ -76,9 +76,11 @@ knowledge3 = And(
     
     
     ## B
-    Implication(BKnight,And(Or(And(AKnight,AKnave),And(AKnave,AKnight)),
+    Implication(BKnight,And(Implication(AKnight,AKnave),
+                            Implication(AKnave,AKnight),
                             CKnave)),
-    Implication(BKnave,And(Or(And(AKnight,AKnight),And(AKnave,AKnight)),
+    Implication(BKnave,And(Implication(AKnight,AKnight),
+                           Implication(AKnave,AKnave),
                             CKnight)),
     
     
@@ -90,6 +92,42 @@ knowledge3 = And(
         
 )
 
+
+# Puzzle 4
+# A says either "I am a knight." or "I am a knave.", but you don't know which.
+# B says "A said 'I am a knight'."
+# B says "C is a knave."
+# C says "A is a knight."
+knowledge4 = And(
+    # Game rules
+    Or(AKnight,AKnave),
+    Not(And(AKnight,AKnave)),
+    Or(BKnight,BKnave),
+    Not(And(BKnight,BKnave)),
+    Or(CKnight,CKnave),
+    Not(And(CKnight,CKnave)),
+    
+    # Puzzle specific
+    ## A 
+    
+    
+    
+    ## B
+    Implication(BKnight,And(Implication(AKnight,AKnight),
+                            Implication(AKnave,AKnave),
+                            CKnave)),
+    Implication(BKnave,And(Implication(AKnight,AKnave),
+                           Implication(AKnave,AKnight),
+                            CKnight)),
+    
+    
+    ## C
+    
+    Implication(CKnight,AKnight),
+    Implication(CKnave,AKnave)
+    
+        
+)
 
 model = {AKnight.name:True,
          AKnave.name:False,
@@ -105,7 +143,8 @@ def main():
         ("Puzzle 0", knowledge0),
         ("Puzzle 1", knowledge1),
         ("Puzzle 2", knowledge2),
-        ("Puzzle 3", knowledge3)
+        ("Puzzle 3", knowledge3),
+        ("Puzzle 4", knowledge4)
     ]
     for puzzle, knowledge in puzzles:
         print(puzzle)

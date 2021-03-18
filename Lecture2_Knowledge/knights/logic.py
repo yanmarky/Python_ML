@@ -1,5 +1,4 @@
 import itertools
-import pdb
 
 
 
@@ -249,14 +248,12 @@ def model_check(knowledge, query):
             # Create a model where the symbol is true
             model_true = model.copy()
             model_true[p] = True
-            
-            pdb.set_trace()
+        
             
             # Create a model where the symbol is false
             model_false = model.copy()
             model_false[p] = False
             
-            pdb.set_trace()
              
             # Ensure entailment holds in both models ////MY: either KB and query 
             # are both True, or KB is false. So if there exists one model where
