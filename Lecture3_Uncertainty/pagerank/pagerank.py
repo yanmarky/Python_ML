@@ -65,7 +65,8 @@ def transition_model(corpus, page, damping_factor):
 
    # For all the pages the current page has link to, random select one and assign damping_factor to it
     if len(corpus[page]) > 0:
-        transition[random.sample(corpus[page],1)[0]] = damping_factor
+        for p in corpus[page]:
+            transition[p] = damping_factor/len(corpus[page])
     else: # giving equal probability to all pages in the corpus
         for p in transition:
             transition[p] = 1/len(list(corpus.keys()))
@@ -76,7 +77,8 @@ def transition_model(corpus, page, damping_factor):
    #                           if i not in corpus[page]],1)[0]] = round(1 - damping_factor,5)
    
    # random choose a page 
-    transition[random.sample(list(corpus.keys()),1)[0]] += round(1 - damping_factor,5) 
+    for p in transition:
+      transition[p] += round(1 - damping_factor,5)/len(list(corpus.keys()))
     
     
     return transition
@@ -94,7 +96,7 @@ def sample_pagerank(corpus, damping_factor, n):
     """
     
     # Initialize count
-    count = 0
+    count = 1
     
     # get list of pages
     pagelist = list(corpus.keys())
@@ -142,19 +144,27 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-
+    
+  
+            
+    
     # Initialize flag for loop
     flag = True
     
     # get list of pages
     pagelist = list(corpus.keys())
     
+    # update corpus to add all pages to pages with no links
+    for p in corpus:
+        if len(corpus[p]) == 0:
+            corpus[p] = set(pagelist)
+            
     # Initialize results
     res = {}
     for i in pagelist:
-       res[i] = 0
+       res[i] = 1/len(pagelist)
     
-    
+    count = 1
     
     # Using the iterative algorithm
     while flag:
@@ -170,7 +180,8 @@ def iterate_pagerank(corpus, damping_factor):
       
       # Update results
       res = nextRes.copy()
-      
+      count += 1
+    #print(count)
     return res
     
     
@@ -202,7 +213,7 @@ def update_pagerank(corpus,page,damping_factor,pageRank):
         summation += pageRank_p/numLinks
     
     
-    updatedPageRank= (1-d)/n + d*summation
+    updatedPageRank = (1-d)/n + d*summation
     
     return updatedPageRank
      
