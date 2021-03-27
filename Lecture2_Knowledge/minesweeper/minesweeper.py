@@ -245,6 +245,7 @@ class MinesweeperAI():
         while flag:
             #4 Mark additional mines/safes: 
             ## fisrt add new mines and safes
+           
             tempKnowledge = copy.deepcopy(self.knowledge)
             
             newMines = set()
@@ -257,11 +258,14 @@ class MinesweeperAI():
             if len(newMines) > 0:
                 for m in newMines:
                     self.mark_mine(m)
+                    flag = True
+                    
             
             if len(newSafes) > 0:
                 for s in newSafes:
                     self.mark_safe(s)
-             
+                    flag = True
+                 
             #5 Infer new sentences: 
             newSentences = list()
             for i in range(0,len(tempKnowledge)):
@@ -285,6 +289,7 @@ class MinesweeperAI():
                 flag = False
             else:
                 self.knowledge.extend(newSentences)
+                
         
         #raise NotImplementedError
 

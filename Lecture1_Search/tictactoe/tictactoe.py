@@ -109,6 +109,9 @@ def winner(board):
     for t in wincond:
         winX.append(set(t).issubset(posX))
         
+       # if set(t).issubset(posX):
+       #     return "X"
+        
     for t in wincond:
         winO.append(set(t).issubset(posO))
         
