@@ -1,6 +1,7 @@
 import csv
 import itertools
 import sys
+from pomegranate import *
 
 PROBS = {
 
@@ -36,6 +37,74 @@ PROBS = {
     "mutation": 0.01
 }
 
+# Build Bayesnet model:
+
+parent1 = Node(DiscreteDistribution({
+    2: PROBS["gene"][2],
+    1: PROBS["gene"][1],
+    0: PROBS["gene"][0]
+}), name="parent1")
+
+parent2 = Node(DiscreteDistribution({
+    2: PROBS["gene"][2],
+    1: PROBS["gene"][1],
+    0: PROBS["gene"][0]
+}), name="parent2")
+
+
+passedGene = Node(ConditionalProbabilityTable([
+    [0, 0, 0, 1],
+    [0, 0, 1, 0],
+    [0, 0, 2, 0],
+    [0, 1, 0, 0.5],
+    [0, 1, 1, 0.5],
+    [0, 1, 2, 0],
+    [0, 2, 0, 0],
+    [0, 2, 1, 1],
+    [0, 2, 2, 0],
+    [1, 0, 0, 0.5],
+    [1, 0, 1, 0.5],
+    [1, 0, 2, 0],
+    [1, 1, 0, 0.25],
+    [1, 1, 1, 0.5],
+    [1, 1, 2, 0.25],
+    [1, 2, 0, 0],
+    [1, 2, 1, 0.5],
+    [1, 2, 2, 0.5],
+    [2, 0, 0, 0],
+    [2, 0, 1, 1],
+    [2, 0, 2, 0],
+    [2, 1, 0, 0],
+    [2, 1, 1, 0.5],
+    [2, 1, 2, 0.5],
+    [2, 2, 0, 0],
+    [2, 2, 1, 0],
+    [2, 2, 2, 1],
+  
+], [parent1.distribution, parent2.distribution]), name="passedGene")
+
+childGene = Node(ConditionalProbabilityTable([
+    [0, 0, (1-PROBS["mutation"])*(1-PROBS["mutation"])],
+    [0, 1, 2*PROBS["mutation"]*(1-PROBS["mutation"])],
+    [0, 2, PROBS["mutation"]*PROBS["mutation"]],
+    [1, 0, PROBS["mutation"]*(1-PROBS["mutation"])],
+    [1, 1, (1-PROBS["mutation"])*(1-PROBS["mutation"])+PROBS["mutation"]*PROBS["mutation"]],
+    [1, 2, PROBS["mutation"]*(1-PROBS["mutation"])],
+    [2, 0, PROBS["mutation"]*PROBS["mutation"]],
+    [2, 1, 2*PROBS["mutation"]*(1-PROBS["mutation"])],
+    [2, 2, (1-PROBS["mutation"])*(1-PROBS["mutation"])],
+ ], [passedGene.distribution]), name="childGene")   
+
+model = BayesianNetwork()
+model.add_states(parent1, parent2, passedGene, childGene)
+
+# Add edges connecting nodes
+model.add_edge(parent1, passedGene)
+model.add_edge(parent2, passedGene)
+model.add_edge(passedGene, childGene)
+
+# Finalize model
+model.bake()
 
 def main():
 
@@ -64,7 +133,8 @@ def main():
     names = set(people)
     for have_trait in powerset(names):
 
-        # Check if current set of people violates known information
+        # Check if current set of people violates known information 
+        ## Find the subset of people whose trait is None, or True
         fails_evidence = any(
             (people[person]["trait"] is not None and
              people[person]["trait"] != (person in have_trait))
@@ -72,7 +142,8 @@ def main():
         )
         if fails_evidence:
             continue
-
+        #print(have_trait)
+        
         # Loop over all sets of people who might have the gene
         for one_gene in powerset(names):
             for two_genes in powerset(names - one_gene):
@@ -139,7 +210,43 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+    # 1: for Probability of number of genes, if parents, use uncondicional probability; 
+    #    if child, write a separate function to calculate the prob dist. conditional on parents status
+    # 2: For probability of trait, use the conditional probability table
+    # 3: Same for people not in "have_trait" 
+    
+    # Initialize status dict to store gene/trait status for everyone
+    status = get_status(people, one_gene, two_genes, have_trait)
+        
+    # calculating joint probability
+    pgene = 1
+    ptrait = 1
+    #Calculating probability for number of genes
+    for p in status:
+        if people[p]['mother'] == None and people[p]['father'] == None:
+            pgene_temp = PROBS["gene"][status[p]["gene"]]
+            pgene = pgene * pgene_temp
+        else:
+            predictions = model.predict_proba({
+                "parent2": status[people[p]['mother']]["gene"],
+                "parent1": status[people[p]['father']]["gene"]
+            })
+            for node, prediction in zip(model.states, predictions):
+                if node.name == "childGene":
+                    p_temp = prediction.parameters[0]    
+            pgene_temp = p_temp[status[p]["gene"]]
+            pgene = pgene * pgene_temp
+     
+    #Calculating probability for traits:
+    for p in status:
+        ptrait_temp = PROBS["trait"][status[p]["gene"]][status[p]["trait"]] 
+        ptrait = ptrait * ptrait_temp
+        
+    joint_p = pgene * ptrait
+    return joint_p
+
+    
+    #raise NotImplementedError
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
@@ -149,7 +256,15 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
-    raise NotImplementedError
+    status = get_status(probabilities, one_gene, two_genes, have_trait)
+    
+    for person in probabilities:
+        probabilities[person]["gene"][status[person]["gene"]] += p
+        probabilities[person]["trait"][status[person]["trait"]] += p
+    
+    
+    
+    #raise NotImplementedError
 
 
 def normalize(probabilities):
@@ -157,7 +272,40 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
+    for person in probabilities:
+        for item in probabilities[person]:
+            norm_factor = sum(probabilities[person][item].values())
+            for prob in probabilities[person][item]:
+                probabilities[person][item][prob] = probabilities[person][item][prob]/norm_factor
+    
+    
+    
+    #raise NotImplementedError
+
+
+def get_status(people, one_gene, two_genes, have_trait):
+    """
+    create a dictionary to store everyone's gene and trait status
+
+    """
+    
+    
+    status = {}
+    names = list(people.keys())
+    
+    for n in names:
+        if n in one_gene:
+            status[n] = {"gene":1}
+        elif n in two_genes:
+            status[n] = {"gene":2}
+        else:
+            status[n] = {"gene":0}
+        if n in have_trait:
+            status[n]["trait"] = True
+        else:
+            status[n]["trait"] = False
+      
+    return status  
 
 
 if __name__ == "__main__":
