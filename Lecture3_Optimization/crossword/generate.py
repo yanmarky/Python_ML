@@ -291,12 +291,12 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        print(assignment)
+        #print(assignment)
         if self.assignment_complete(assignment):
             return assignment
         
         var = self.select_unassigned_variable(assignment)
-        print(var)
+        #print(var)
         #assignment_temp = assignment.copy()
         for w in self.order_domain_values(var, assignment):
             assignment[var] = w
