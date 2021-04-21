@@ -307,10 +307,7 @@ class CrosswordCreator():
             assignment.pop(var)
         return None    
             
-            
-        
-        
-        
+              
         #raise NotImplementedError
 
 

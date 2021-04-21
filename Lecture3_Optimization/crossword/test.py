@@ -12,7 +12,7 @@ import generate
 structure = "data/structure1.txt"
 words = "data/words1.txt"
 
-crossword = Crossword(structure, words)
+crossword = crossword.Crossword(structure, words)
 creator = CrosswordCreator(crossword)
 creator.enforce_node_consistency()
 #creator.revise(x,y)
