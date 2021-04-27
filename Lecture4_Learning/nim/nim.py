@@ -93,7 +93,7 @@ class NimAI():
         from taking that action.
         """
         old = self.get_q_value(old_state, action)
-        best_future = self.best_future_reward(new_state)
+        best_future = self.best_future_reward(old_state)
         self.update_q_value(old_state, action, old, reward, best_future)
 
     def get_q_value(self, state, action):
@@ -101,7 +101,12 @@ class NimAI():
         Return the Q-value for the state `state` and the action `action`.
         If no Q-value exists yet in `self.q`, return 0.
         """
-        raise NotImplementedError
+        state = tuple(state)
+        if (state,action) in self.q:
+            return self.q[state,action]
+        return 0
+        
+        #raise NotImplementedError
 
     def update_q_value(self, state, action, old_q, reward, future_rewards):
         """
@@ -118,7 +123,10 @@ class NimAI():
         `alpha` is the learning rate, and `new value estimate`
         is the sum of the current reward and estimated future rewards.
         """
-        raise NotImplementedError
+        state = tuple(state)
+        self.q[(state,action)] = old_q+self.alpha*(reward+future_rewards-old_q)
+        
+        #raise NotImplementedError
 
     def best_future_reward(self, state):
         """
@@ -130,7 +138,23 @@ class NimAI():
         Q-value in `self.q`. If there are no available actions in
         `state`, return 0.
         """
-        raise NotImplementedError
+        state = tuple(state)
+        actions = set()
+        for i, pile in enumerate(state):
+            for j in range(1, pile + 1):
+                actions.add((i, j))
+        
+        maxQ = -float('inf')
+        for action in actions:
+            q = self.get_q_value(state,action)
+            if q > maxQ:
+                maxQ = q
+        
+        return maxQ
+            
+        
+        
+        #raise NotImplementedError
 
     def choose_action(self, state, epsilon=True):
         """
@@ -147,8 +171,37 @@ class NimAI():
         If multiple actions have the same Q-value, any of those
         options is an acceptable return value.
         """
-        raise NotImplementedError
+        state = tuple(state)
+        actions = set()
+        for i, pile in enumerate(state):
+            for j in range(1, pile + 1):
+                actions.add((i, j))
+          
+        bestAction = None
+        bestQ = -float('inf')
+        for action in actions:
+            currectQ = self.get_q_value(state, action)
+            if currectQ > bestQ: 
+                bestQ = currectQ
+                bestAction = action
+                
+            
+        if epsilon:
+            if self.epsilon >= random.uniform(0, 1):
+                nextAction = random.sample(list(actions), 1).pop()
+                return nextAction
+            return bestAction
+        return bestAction
+            
+                
+        
+        
+        #raise NotImplementedError
 
+# Thoughts: Is Q-learning good for competitive games like nim? For example, if Move_A by Player_1
+# leads to a winning Move_B by Player_2, then Move_A should have low reward, however, because Move_B 
+# has high reward, which would increase Move_A's future reward. We probably should have a q matrix 
+# for each player and then take average. 
 
 def train(n):
     """
