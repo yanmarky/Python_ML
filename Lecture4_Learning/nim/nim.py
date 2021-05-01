@@ -93,7 +93,7 @@ class NimAI():
         from taking that action.
         """
         old = self.get_q_value(old_state, action)
-        best_future = self.best_future_reward(old_state)
+        best_future = self.best_future_reward(new_state)
         self.update_q_value(old_state, action, old, reward, best_future)
 
     def get_q_value(self, state, action):
@@ -143,7 +143,10 @@ class NimAI():
         for i, pile in enumerate(state):
             for j in range(1, pile + 1):
                 actions.add((i, j))
-        
+
+        if actions is None or len(actions)==0:
+            return 0
+
         maxQ = -float('inf')
         for action in actions:
             q = self.get_q_value(state,action)
@@ -199,9 +202,10 @@ class NimAI():
         #raise NotImplementedError
 
 # Thoughts: Is Q-learning good for competitive games like nim? For example, if Move_A by Player_1
-# leads to a winning Move_B by Player_2, then Move_A should have low reward, however, because Move_B 
-# has high reward, which would increase Move_A's future reward. We probably should have a q matrix 
-# for each player and then take average. 
+# leads to a winning Move_B by Player_2, then Move_A should have low reward, however, because Move_B
+# has high reward, which would increase Move_A's future reward. We probably should have a q matrix
+# for each player and then take average.
+# I made a mistake in my original code: best future reward should be based on the new state, rather than the old state
 
 def train(n):
     """
