@@ -10,6 +10,7 @@ EPOCHS = 10
 IMG_WIDTH = 30
 IMG_HEIGHT = 30
 global NUM_CATEGORIES
+NUM_CATEGORIES = 43
 TEST_SIZE = 0.4
 
 
@@ -38,7 +39,7 @@ def main():
 
     # Evaluate neural network performance
     model.evaluate(x_test,  y_test, verbose=2)
-
+    print(model.summary())
     # Save model to file
     if len(sys.argv) == 3:
         filename = sys.argv[2]
@@ -70,7 +71,7 @@ def load_data(data_dir):
         for img in images:
            tmp =  cv2.imread(os.path.join(data_dir,d,img), )
            tmp_resized = cv2.resize(tmp,(IMG_WIDTH,IMG_HEIGHT),interpolation = cv2.INTER_AREA)
-           all_images.append(tmp)
+           all_images.append(tmp_resized)
            all_labels.append(d)
 
     return((all_images,all_labels))
@@ -84,28 +85,22 @@ def get_model():
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
     model = tf.keras.models.Sequential()
+    model.add(tf.keras.layers.Conv2D(32, 3, input_shape = (IMG_WIDTH,IMG_HEIGHT,3), activation = "relu"))
+    model.add(tf.keras.layers.Conv2D(32, 3, activation="relu"))
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(tf.keras.layers.Conv2D(32, 3, activation="relu"))
+    model.add(tf.keras.layers.MaxPooling2D(pool_size=(2,2)))
+    #model.summary()
 
+    # Flatten units (what does this do?)
+    model.add(tf.keras.layers.Flatten())
 
-    model = tf.keras.models.Sequential([
+    # Add a hidden layer with dropout
+    model.add(tf.keras.layers.Dense(128,activation = "relu"))
+    model.add(tf.keras.layers.Dropout(0.5))
 
-        # Convolutional layer. Learn 32 filters using a 3x3 kernel
-        tf.keras.layers.Conv2D(
-            32, (3, 3), activation="relu", input_shape=(28, 28, 1)
-        ),
-
-        # Max-pooling layer, using 2x2 pool size
-        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-
-        # Flatten units
-        tf.keras.layers.Flatten(),
-
-        # Add a hidden layer with dropout
-        tf.keras.layers.Dense(128, activation="relu"),
-        tf.keras.layers.Dropout(0.5),
-
-        # Add an output layer with output units for all 10 digits
-        tf.keras.layers.Dense(10, activation="softmax")
-    ])
+    # Add an output layer with output units for all types of signs
+    model.add(tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax"))
 
     # Train neural network
     model.compile(
@@ -114,8 +109,7 @@ def get_model():
         metrics=["accuracy"]
     )
 
-
-
+    return model
     #raise NotImplementedError
 
 

@@ -7,3 +7,10 @@ Created on Fri Apr 30 13:35:56 2021
 
 os.chdir("traffic")
 data_dir = "../../data/gtsrb-small"
+
+data_dir = "../../data/gtsrb"
+
+
+images, labels = load_data(data_dir)
+
+
