@@ -69,7 +69,7 @@ def load_data(data_dir):
     for d in f:
         images = os.listdir(os.path.join(data_dir,d))
         for img in images:
-           tmp =  cv2.imread(os.path.join(data_dir,d,img), )
+           tmp = cv2.imread(os.path.join(data_dir,d,img), )
            tmp_resized = cv2.resize(tmp,(IMG_WIDTH,IMG_HEIGHT),interpolation = cv2.INTER_AREA)
            all_images.append(tmp_resized)
            all_labels.append(d)
